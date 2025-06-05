@@ -1,9 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import PostsList from '@/feature/posts/ui/PostsList.vue'
 
 const routes = [
   {
     path: '/',
     name: 'Home',
+    component: {
+      template: PostsList,
+    },
   },
   {
     path: '/about',

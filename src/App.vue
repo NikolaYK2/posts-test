@@ -2,13 +2,13 @@
   <div id="app">
     <h1>Моё Vue-приложение</h1>
     <router-view />
-    <Posts />
+    <PostsList />
   </div>
 </template>
 
 <script setup lang="ts">
 
-import Posts from '@/feature/posts/ui/Posts.vue'
+import PostsList from '@/feature/posts/ui/PostsList.vue'
 </script>
 
 <style>
