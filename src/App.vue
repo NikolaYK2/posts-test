@@ -7,8 +7,8 @@
 </template>
 
 <script setup lang="ts">
-
 import PostsList from '@/feature/posts/ui/PostsList.vue'
+import './assets/base.css'
 </script>
 
 <style>
