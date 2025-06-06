@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <h1>Моё Vue-приложение</h1>
+    <h1>Моё <span>Vue</span>-приложение</h1>
     <router-view />
     <PostsList />
   </div>
@@ -15,5 +15,9 @@ import './assets/base.css'
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   margin: 20px;
+}
+
+h1 span {
+  color: var(--vt-c-green);
 }
 </style>
