@@ -1,39 +1,42 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { usePosts } from '@/feature/posts/model/hooks'
+import { computed, ref } from 'vue'
+import { usePosts, useSearchPosts } from '@/feature/posts/model/hooks'
 import MultiIcons from '@/shared/ui/icons/MultiIcons.vue'
+import type { Article } from '@/feature/posts/model/types'
 
-const { posts, isLoading, error, fetchUsers } = usePosts()
+const { posts, totalPages, currentPage, isLoading, error } = usePosts(10)
 
-const idFilter = ref('')
-const titleFilter = ref('')
-const bodyFilter = ref('')
-const likesFilter = ref('')
-const dislikesFilter = ref('')
+const filterByLikes = ref('')
+const filterByDislikes = ref('')
+const { filterById, titleQuery, bodyQuery, searchResults, explicitIdResult, idError } =
+  useSearchPosts()
 
 const fields = [
-  { title: 'id', value: idFilter, placeholder: 'поиск id' },
-  { title: 'title', value: titleFilter, placeholder: 'поиск title' },
-  { title: 'body', value: bodyFilter, placeholder: 'поиск body' },
-  { title: 'likes', value: likesFilter, placeholder: 'поиск likes' },
-  { title: 'dislikes', value: dislikesFilter, placeholder: 'поиск dislikes' },
+  { title: 'id', value: filterById, placeholder: 'поиск id' },
+  { title: 'title', value: titleQuery, placeholder: 'поиск title' },
+  { title: 'body', value: bodyQuery, placeholder: 'поиск body' },
+  { title: 'likes', value: filterByLikes, placeholder: 'поиск likes' },
+  { title: 'dislikes', value: filterByDislikes, placeholder: 'поиск dislikes' },
 ] as const
 
-const filteredPosts = computed(() => {
-  const fId = idFilter.value.trim().toLowerCase()
-  const fTitle = titleFilter.value.trim().toLowerCase()
-  const fBody = bodyFilter.value.trim().toLowerCase()
-  const fLikes = likesFilter.value.trim().toLowerCase()
-  const fDislikes = dislikesFilter.value.trim().toLowerCase()
+// Итоговый список
+const filteredPosts = computed<Article[]>(() => {
+  if (explicitIdResult.value) return [explicitIdResult.value]
 
-  return posts.value.filter((post) => {
-    const matchId = !fId || post.id.toString().toLowerCase().includes(fId)
-    const matchTitle = !fTitle || post.title.toLowerCase().includes(fTitle)
-    const matchBody = !fBody || post.body.toLowerCase().includes(fBody)
-    const matchLikes = !fLikes || post.reactions.likes.toString().includes(fLikes)
-    const matchDislikes = !fDislikes || post.reactions.dislikes.toString().includes(fDislikes)
-    return matchId && matchTitle && matchBody && matchLikes && matchDislikes
-  })
+  const base = searchResults.value ?? posts.value
+  return base
+    .filter((p) => {
+      const v = filterByLikes.value.trim()
+      if (!v) return true
+      const n = Number(v)
+      return !isNaN(n) && p.reactions.likes === n
+    })
+    .filter((p) => {
+      const v = filterByDislikes.value.trim()
+      if (!v) return true
+      const n = Number(v)
+      return !isNaN(n) && p.reactions.dislikes === n
+    })
 })
 </script>
 
@@ -64,7 +67,7 @@ const filteredPosts = computed(() => {
           </th>
         </tr>
       </thead>
-
+      <span style="color: var(--vt-c-error)">{{ idError }}</span>
       <tbody>
         <tr v-for="post in filteredPosts" :key="post.id">
           <td>{{ post.id }}</td>
@@ -87,8 +90,30 @@ const filteredPosts = computed(() => {
         </tr>
       </tbody>
     </table>
+    <!-- Блок пагинации под таблицей -->
+    <div
+      v-if="totalPages > 1 && !isLoading"
+      style="margin-top: 16px; display: flex; align-items: center; gap: 8px"
+    >
+      <!-- Prev -->
+      <button :disabled="currentPage === 1" @click="currentPage--">Prev</button>
 
-    <button @click="fetchUsers">Обновить список</button>
+      <!-- Номера страниц -->
+      <button
+        v-for="page in totalPages"
+        :key="page"
+        :style="{
+          fontWeight: page === currentPage ? 'bold' : 'normal',
+          textDecoration: page === currentPage ? 'underline' : 'none',
+        }"
+        @click="currentPage = page"
+      >
+        {{ page }}
+      </button>
+
+      <!-- Next -->
+      <button :disabled="currentPage === totalPages" @click="currentPage++">Next</button>
+    </div>
   </div>
 </template>
 
