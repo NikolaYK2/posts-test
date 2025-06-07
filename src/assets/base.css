@@ -15,6 +15,18 @@
     --vt-c-black-soft: #222222;
 
     --vt-c-text-dark-2: rgba(235, 235, 235, 0.64);
+    .loading {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: var(--vt-c-green);
+        background: var(--vt-c-darck-opacity);
+    }
 }
 
 /* semantic color variables for this project */
