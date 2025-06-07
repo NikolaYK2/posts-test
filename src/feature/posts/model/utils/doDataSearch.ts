@@ -1,8 +1,8 @@
 import type { Ref } from 'vue'
-import type { Article } from '@/feature/posts/model/types'
+import type { Article, PostsResponse } from '@/feature/posts/model/types'
 
 export async function doDataSearch(
-  apiFn: (textQuery: string) => Promise<Article[]>,
+  apiFn: (textQuery: string) => Promise<PostsResponse>,
   query: string,
   resultRef: Ref<Article[] | null>,
 ) {
@@ -12,7 +12,7 @@ export async function doDataSearch(
     return
   }
   try {
-    resultRef.value = await apiFn(trimmed)
+    resultRef.value = (await apiFn(trimmed)).posts
   } catch {
     resultRef.value = []
   }
