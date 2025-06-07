@@ -1,3 +1,4 @@
+//RES -------------------------------
 export type Reactions = {
   likes: number
   dislikes: number
@@ -7,10 +8,11 @@ export type Reactions = {
 
 export type Article = {
   id: number
+  userId: number
   title: string
   body: string
-  tags: string[]
   reactions: Reactions
+  tags: string[]
 }
 
 export type PostsResponse = {
@@ -19,3 +21,18 @@ export type PostsResponse = {
   skip: number
   limit: number
 }
+
+type CommentUser = {
+  username: string
+}
+
+type Comment = {
+  user: CommentUser
+  body: string
+  id: number
+}
+
+export type CommentsResponse = {
+  comments: Comment[]
+}
+// PARAMS --------------------
