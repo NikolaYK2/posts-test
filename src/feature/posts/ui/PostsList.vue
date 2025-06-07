@@ -62,6 +62,7 @@ const visiblePages = computed(() => {
 <template>
   <div>
     <h2>Список постов</h2>
+    <span style="display: flex; color: var(--vt-c-error); height: 20px">{{ idError }}</span>
 
     <div v-if="isLoading">Загрузка...</div>
     <div v-else-if="error">Ошибка: {{ error.message }}</div>
@@ -86,7 +87,7 @@ const visiblePages = computed(() => {
           </th>
         </tr>
       </thead>
-      <span style="color: var(--vt-c-error)">{{ idError }}</span>
+
       <tbody>
         <tr v-for="post in filteredPosts" :key="post.id">
           <td>{{ post.id }}</td>
