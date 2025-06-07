@@ -12,3 +12,10 @@ export type Article = {
   tags: string[]
   reactions: Reactions
 }
+
+export type PostsResponse = {
+  posts: Article[]
+  total: number
+  skip: number
+  limit: number
+}
