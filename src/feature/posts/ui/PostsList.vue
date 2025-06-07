@@ -3,11 +3,14 @@ import { computed, ref } from 'vue'
 import { usePosts, useSearchPosts } from '@/feature/posts/model/hooks'
 import MultiIcons from '@/shared/ui/icons/MultiIcons.vue'
 import type { Article } from '@/feature/posts/model/types'
+import PostModal from '@/feature/posts/ui/PostModal.vue'
 
 const { posts, totalPages, currentPage, isLoading, error } = usePosts(10)
 
 const filterByLikes = ref('')
 const filterByDislikes = ref('')
+const selectedPostId = ref<number | null>(null)
+
 const { filterById, titleQuery, bodyQuery, searchResults, explicitIdResult, idError } =
   useSearchPosts()
 
@@ -39,6 +42,15 @@ const filteredPosts = computed<Article[]>(() => {
     })
 })
 
+// Открыть модальное окно
+const openPostModal = (postId: number) => {
+  selectedPostId.value = postId
+}
+
+// Закрыть модальное окно
+const closePostModal = () => {
+  selectedPostId.value = null
+}
 const visiblePages = computed(() => {
   const pages: (number | string)[] = []
 
@@ -60,7 +72,7 @@ const visiblePages = computed(() => {
 </script>
 
 <template>
-  <div>
+  <section>
     <h2>Список постов</h2>
     <span style="display: flex; color: var(--vt-c-error); height: 20px">{{ idError }}</span>
 
@@ -89,8 +101,8 @@ const visiblePages = computed(() => {
       </thead>
 
       <tbody>
-        <tr v-for="post in filteredPosts" :key="post.id">
-          <td>{{ post.id }}</td>
+        <tr v-for="post in filteredPosts" :key="post.id" @click="openPostModal(post.id)">
+          <td>{{ post.userId }}</td>
           <td>{{ post.title }}</td>
           <td>
             {{ post.body.length > 100 ? post.body.slice(0, 100) + '...' : post.body }}
@@ -111,7 +123,14 @@ const visiblePages = computed(() => {
       </tbody>
     </table>
 
-    <div
+    <PostModal
+      v-if="selectedPostId !== null"
+      :post-id="selectedPostId"
+      :all-posts="posts"
+      @close="closePostModal"
+    />
+
+    <section
       v-if="totalPages > 1 && !isLoading"
       style="margin-top: 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap"
     >
@@ -135,8 +154,8 @@ const visiblePages = computed(() => {
       <button :disabled="currentPage === totalPages" @click="currentPage++">Next</button>
 
       <button :disabled="currentPage === totalPages" @click="currentPage = totalPages">>></button>
-    </div>
-  </div>
+    </section>
+  </section>
 </template>
 
 <style scoped>
@@ -158,7 +177,7 @@ td {
 }
 
 tbody tr:hover {
-  background: var(--vt-c-divider-dark-1);
+  background: var(--vt-c-darck-disabled);
   cursor: pointer;
   transition: background 0.3s ease;
 }
@@ -188,6 +207,10 @@ button {
   cursor: pointer;
   background: transparent;
   transition: background 0.3s ease;
+
+  &:focus {
+    outline: 1px solid var(--vt-c-green);
+  }
 
   &:not(:disabled):hover {
     background: var(--vt-c-green);
