@@ -14,7 +14,7 @@ import './assets/base.css'
 <style>
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
-  margin: 20px;
+  margin: 3%;
 }
 
 h1 span {
