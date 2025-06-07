@@ -38,6 +38,25 @@ const filteredPosts = computed<Article[]>(() => {
       return !isNaN(n) && p.reactions.dislikes === n
     })
 })
+
+const visiblePages = computed(() => {
+  const pages: (number | string)[] = []
+
+  if (totalPages.value <= 3) {
+    for (let i = 1; i <= totalPages.value; i++) {
+      pages.push(i)
+    }
+  } else {
+    if (currentPage.value <= 2) {
+      pages.push(1, 2, 3, '...')
+    } else if (currentPage.value >= totalPages.value - 1) {
+      pages.push('...', totalPages.value - 2, totalPages.value - 1, totalPages.value)
+    } else {
+      pages.push('...', currentPage.value - 1, currentPage.value, currentPage.value + 1, '...')
+    }
+  }
+  return pages
+})
 </script>
 
 <template>
@@ -90,29 +109,31 @@ const filteredPosts = computed<Article[]>(() => {
         </tr>
       </tbody>
     </table>
-    <!-- Блок пагинации под таблицей -->
+
     <div
       v-if="totalPages > 1 && !isLoading"
-      style="margin-top: 16px; display: flex; align-items: center; gap: 8px"
+      style="margin-top: 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap"
     >
-      <!-- Prev -->
+      <button :disabled="currentPage === 1" @click="currentPage = 1">{{ '<<' }}</button>
+
       <button :disabled="currentPage === 1" @click="currentPage--">Prev</button>
 
-      <!-- Номера страниц -->
       <button
-        v-for="page in totalPages"
+        v-for="page in visiblePages"
         :key="page"
-        :style="{
-          fontWeight: page === currentPage ? 'bold' : 'normal',
-          textDecoration: page === currentPage ? 'underline' : 'none',
-        }"
-        @click="currentPage = page"
+        :disabled="page === '...'"
+        :style="[
+          page === currentPage && { fontWeight: 'bold' },
+          page === currentPage && { background: 'var(--vt-c-green)' },
+        ]"
+        @click="typeof page === 'number' && (currentPage = page)"
       >
         {{ page }}
       </button>
 
-      <!-- Next -->
       <button :disabled="currentPage === totalPages" @click="currentPage++">Next</button>
+
+      <button :disabled="currentPage === totalPages" @click="currentPage = totalPages">>></button>
     </div>
   </div>
 </template>
@@ -152,6 +173,24 @@ input {
 
   &:focus {
     outline: none;
+  }
+}
+
+button {
+  all: unset;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 5px;
+  cursor: pointer;
+  background: transparent;
+  transition: background 0.3s ease;
+
+  &:not(:disabled):hover {
+    background: var(--vt-c-green);
+    transition: background 0.3s ease;
   }
 }
 </style>
