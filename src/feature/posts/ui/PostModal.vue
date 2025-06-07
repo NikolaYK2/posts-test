@@ -22,6 +22,8 @@ const isEditing = ref(false)
 const editedTitle = ref('')
 const editedBody = ref('')
 const showComments = ref(false)
+const isLoading = ref(false)
+const error = ref<Error | null>(null)
 
 const FIELDS = [
   { label: 'Тело поста:', item: editedBody },
@@ -31,38 +33,45 @@ const FIELDS = [
 
 // Загрузка деталей поста
 const loadDetails = async (id: number) => {
-  const key = `postDetails_${id}`
-  const stored = sessionStorage.getItem(key)
-  if (stored) {
-    const data = JSON.parse(stored)
-    postDetails.value = data.post
-    authorName.value = data.authorName
-    authorCompany.value = data.authorCompany
-    comments.value = data.comments
-  } else {
-    const post = await apiPosts.getPostsId(id)
-    const user = await apiUsers.getUsers(id)
-    const comm = await apiPosts.getComment(id)
+  isLoading.value = true
+  error.value = null
+  try {
+    const key = `postDetails_${id}`
+    const stored = sessionStorage.getItem(key)
+    if (stored) {
+      const data = JSON.parse(stored)
+      postDetails.value = data.post
+      authorName.value = data.authorName
+      authorCompany.value = data.authorCompany
+      comments.value = data.comments
+    } else {
+      const post = await apiPosts.getPostsId(id)
+      const user = await apiUsers.getUsers(id)
+      const comm = await apiPosts.getComment(id)
 
-    postDetails.value = post
-    authorName.value = `${user.firstName} ${user.lastName}`
-    authorCompany.value = `${user.company.title}, ${user.company.department}`
-    comments.value = comm.comments
+      postDetails.value = post
+      authorName.value = `${user.firstName} ${user.lastName}`
+      authorCompany.value = `${user.company.title}, ${user.company.department}`
+      comments.value = comm.comments
 
-    sessionStorage.setItem(
-      key,
-      JSON.stringify({
-        post,
-        authorName: authorName.value,
-        authorCompany: authorCompany.value,
-        comments: comments.value,
-      }),
-    )
+      sessionStorage.setItem(
+        key,
+        JSON.stringify({
+          post,
+          authorName: authorName.value,
+          authorCompany: authorCompany.value,
+          comments: comments.value,
+        }),
+      )
+    }
+    editedTitle.value = postDetails.value.title
+    editedBody.value = postDetails.value.body
+  } catch (err: unknown) {
+    error.value = (err as Error) || new Error('Неизвестная ошибка')
+  } finally {
+    isLoading.value = false
   }
-  editedTitle.value = postDetails.value.title
-  editedBody.value = postDetails.value.body
 }
-
 const load = () => loadDetails(currentId.value)
 
 onMounted(load)
@@ -84,24 +93,31 @@ watch([editedTitle, editedBody], ([nt, nb]) => {
 })
 
 const saveEdit = async () => {
-  const res = await apiPosts.createPost({
-    postId: currentId.value,
-    title: editedTitle.value,
-    body: editedBody.value,
-  })
-  postDetails.value = res
-  sessionStorage.setItem(
-    `postDetails_${currentId.value}`,
-    JSON.stringify({
-      post: res,
-      authorName: authorName.value,
-      authorCompany: authorCompany.value,
-      comments: comments.value,
-    }),
-  )
-  isEditing.value = false
+  isLoading.value = true
+  error.value = null
+  try {
+    const res = await apiPosts.createPost({
+      postId: currentId.value,
+      title: editedTitle.value,
+      body: editedBody.value,
+    })
+    postDetails.value = res
+    sessionStorage.setItem(
+      `postDetails_${currentId.value}`,
+      JSON.stringify({
+        post: res,
+        authorName: authorName.value,
+        authorCompany: authorCompany.value,
+        comments: comments.value,
+      }),
+    )
+    isEditing.value = false
+  } catch (err: unknown) {
+    error.value = (err as Error) || new Error('Неизвестная ошибка')
+  } finally {
+    isLoading.value = false
+  }
 }
-
 // Навигация
 const index = computed(() => props.allPosts.findIndex((p) => p.id === currentId.value))
 const hasPrev = computed(() => index.value > 0)
@@ -134,6 +150,10 @@ onUnmounted(() => {
 <template>
   <section class="overlay" tabindex="-1" @click="close">
     <section class="containerModal" @click.stop>
+      <section v-if="isLoading" class="loading">Загрузка...</section>
+      <section v-if="error" style="color: red; text-align: center; margin: 10px">
+        Ошибка: {{ error.message }}
+      </section>
       <section class="modalHeader">
         <h2>{{ postDetails.title }}</h2>
         <button class="btnClose" @click="close">✖</button>
@@ -181,6 +201,7 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+
 .overlay {
   position: fixed;
   top: 0;

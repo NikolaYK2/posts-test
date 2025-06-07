@@ -76,10 +76,10 @@ const visiblePages = computed(() => {
     <h2>Список постов</h2>
     <span style="display: flex; color: var(--vt-c-error); height: 20px">{{ idError }}</span>
 
-    <div v-if="isLoading">Загрузка...</div>
+    <div v-if="isLoading" class="loading">Загрузка...</div>
     <div v-else-if="error">Ошибка: {{ error.message }}</div>
 
-    <table v-else>
+    <table>
       <thead>
         <tr>
           <th
