@@ -28,7 +28,7 @@ export const apiPosts = {
         q: textSearch,
       },
     })
-    return res.data.posts
+    return res.data
   },
 
   async getPostsId(id: number) {
