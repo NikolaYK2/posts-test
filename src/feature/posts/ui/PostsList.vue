@@ -248,8 +248,9 @@ button {
 }
 
 @media screen and (max-width: 600px) {
-  table thead {
-    display: none;
+  table thead tr {
+    display: flex;
+    flex-direction: column;
   }
 
   table tr {
