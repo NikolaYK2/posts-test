@@ -55,8 +55,11 @@ export function useSearchPosts() {
     if (textQuery.trim()) {
       debouncedTitleSearch(textQuery)
       bodyQuery.value = ''
-    } else if (!bodyQuery.value.trim()) {
-      searchResults.value = null
+    } else {
+      debouncedTitleSearch.cancel()
+      if (!bodyQuery.value.trim()) {
+        searchResults.value = null
+      }
     }
   })
 
@@ -68,8 +71,11 @@ export function useSearchPosts() {
     if (textQuery.trim()) {
       debouncedBodySearch(textQuery)
       titleQuery.value = ''
-    } else if (!titleQuery.value.trim()) {
-      searchResults.value = null
+    } else {
+      debouncedBodySearch.cancel()
+      if (!titleQuery.value.trim()) {
+        searchResults.value = null
+      }
     }
   })
 
