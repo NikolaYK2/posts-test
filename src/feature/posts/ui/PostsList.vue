@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { usePosts, useSearchPosts } from '@/feature/posts/model/hooks'
 import MultiIcons from '@/shared/ui/icons/MultiIcons.vue'
 import type { Article } from '@/feature/posts/model/types'
@@ -27,7 +27,7 @@ const filteredPosts = computed<Article[]>(() => {
   if (explicitIdResult.value) return [explicitIdResult.value]
 
   const base = searchResults.value ?? posts.value
-  return base
+  const filtered = base
     .filter((p) => {
       const v = filterByLikes.value.trim()
       if (!v) return true
@@ -40,6 +40,13 @@ const filteredPosts = computed<Article[]>(() => {
       const n = Number(v)
       return !isNaN(n) && p.reactions.dislikes === n
     })
+
+  if (searchResults.value) {
+    const start = (currentPage.value - 1) * limit.value
+    return filtered.slice(start, start + limit.value)
+  }
+
+  return filtered
 })
 
 // Открыть модальное окно
@@ -74,6 +81,10 @@ const visiblePages = computed(() => {
     }
   }
   return pages
+})
+
+watch([searchResults, explicitIdResult], () => {
+  currentPage.value = 1
 })
 </script>
 
@@ -157,9 +168,9 @@ const visiblePages = computed(() => {
         {{ page }}
       </button>
 
-      <button :disabled="currentPage === totalPages" @click="currentPage++">Next</button>
+      <button :disabled="currentPage === displayedTotalPages" @click="currentPage++">Next</button>
 
-      <button :disabled="currentPage === totalPages" @click="currentPage = totalPages">>></button>
+      <button :disabled="currentPage === displayedTotalPages" @click="currentPage = displayedTotalPages">>></button>
     </section>
   </section>
 </template>
