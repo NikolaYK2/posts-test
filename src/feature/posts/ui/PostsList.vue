@@ -60,9 +60,7 @@ const closePostModal = () => {
 }
 
 const displayedTotalPages = computed(() =>
-  searchResults.value
-    ? Math.ceil(searchResults.value.length / limit.value) || 1
-    : totalPages.value,
+  searchResults.value ? Math.ceil(searchResults.value.length / limit.value) || 1 : totalPages.value,
 )
 const visiblePages = computed(() => {
   const pages: (number | string)[] = []
@@ -75,7 +73,12 @@ const visiblePages = computed(() => {
     if (currentPage.value <= 2) {
       pages.push(1, 2, 3, '...')
     } else if (currentPage.value >= displayedTotalPages.value - 1) {
-      pages.push('...', displayedTotalPages.value - 2, displayedTotalPages.value - 1, displayedTotalPages.value)
+      pages.push(
+        '...',
+        displayedTotalPages.value - 2,
+        displayedTotalPages.value - 1,
+        displayedTotalPages.value,
+      )
     } else {
       pages.push('...', currentPage.value - 1, currentPage.value, currentPage.value + 1, '...')
     }
@@ -119,18 +122,18 @@ watch([searchResults, explicitIdResult], () => {
 
       <tbody>
         <tr v-for="post in filteredPosts" :key="post.id" @click="openPostModal(post.id)">
-          <td>{{ post.userId }}</td>
-          <td>{{ post.title }}</td>
-          <td>
+          <td aria-label="Avtar ID">{{ post.userId }}</td>
+          <td aria-label="Title">{{ post.title }}</td>
+          <td aria-label="Body">
             {{ post.body.length > 100 ? post.body.slice(0, 100) + '...' : post.body }}
           </td>
-          <td style="text-align: center; color: var(--vt-c-green)">
+          <td aria-label="Likes" style="text-align: center; color: var(--vt-c-green)">
             <div style="display: flex; align-items: center; justify-content: center; gap: 4px 8px">
               {{ post.reactions.likes }}
               <MultiIcons icon-id="like" width="20" height="20" />
             </div>
           </td>
-          <td style="color: red">
+          <td aria-label="Dislikes" style="color: red">
             <div style="display: flex; align-items: center; justify-content: center; gap: 4px 8px">
               {{ post.reactions.dislikes }}
               <MultiIcons icon-id="dislike" width="20" height="20" />
@@ -170,7 +173,12 @@ watch([searchResults, explicitIdResult], () => {
 
       <button :disabled="currentPage === displayedTotalPages" @click="currentPage++">Next</button>
 
-      <button :disabled="currentPage === displayedTotalPages" @click="currentPage = displayedTotalPages">>></button>
+      <button
+        :disabled="currentPage === displayedTotalPages"
+        @click="currentPage = displayedTotalPages"
+      >
+        >>
+      </button>
     </section>
   </section>
 </template>
@@ -233,8 +241,37 @@ button {
     background: var(--vt-c-green);
     transition: background 0.3s ease;
   }
-  &:disabled{
+
+  &:disabled {
     opacity: 0.3;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  table thead {
+    display: none;
+  }
+
+  table tr {
+    display: block;
+  }
+
+  table td {
+    display: block;
+    border: none;
+  }
+
+  tr {
+    border: 1px solid var(--vt-c-green);
+    text-align: center;
+    margin: 5px 0;
+  }
+
+  table td:before {
+    content: attr(aria-label);
+    font-weight: bold;
+    text-transform: uppercase;
+    margin: 0 10px 0 0;
   }
 }
 </style>
