@@ -26,7 +26,7 @@ type CommentUser = {
   username: string
 }
 
-type Comment = {
+export type Comment = {
   user: CommentUser
   body: string
   id: number
