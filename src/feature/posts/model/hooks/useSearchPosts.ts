@@ -2,23 +2,43 @@ import { ref, watch } from 'vue'
 import { useDebounceFn } from '@vueuse/core'
 import type { Article } from '@/feature/posts/model/types'
 import { apiPosts } from '@/feature/posts/model/api'
-import { doDataSearch } from '@/feature/posts/model/utils/doDataSearch.ts'
+import { doDataSearch } from '@/feature/posts/model/utils/doDataSearch'
 
 export function useSearchPosts() {
   const filterById = ref('')
   const titleQuery = ref('')
   const bodyQuery = ref('')
 
-  // результат «глобального» поиска по API (title или body)
   const searchResults = ref<Article[] | null>(null)
-  // результат точечного поиска по ID
   const explicitIdResult = ref<Article | null>(null)
   const idError = ref<string | null>(null)
 
-  // debounced запрос по ID
+  // 1) debounced поиск по title/body
+  const debouncedGlobalSearch = useDebounceFn(async () => {
+    const t = titleQuery.value.trim()
+    const b = bodyQuery.value.trim()
+
+    // если оба пустые — сбросить результат и выйти
+    if (!t && !b) {
+      searchResults.value = null
+      return
+    }
+
+    // Если пользователь ввёл title — сбросим body, и наоборот
+    const query = t || b
+    if (t) bodyQuery.value = ''
+    else titleQuery.value = ''
+
+    // собственно запрос
+    await doDataSearch(apiPosts.searchPosts, query, searchResults)
+  }, 300)
+
+  watch([titleQuery, bodyQuery], debouncedGlobalSearch)
+
+  // 2) debounced поиск по ID
   const fetchPostById = async (id: number) => {
     try {
-      explicitIdResult.value = await apiPosts.getPostsId(id) // ожидаем { post: Article }
+      explicitIdResult.value = await apiPosts.getPostsId(id)
       idError.value = null
     } catch {
       explicitIdResult.value = null
@@ -26,65 +46,23 @@ export function useSearchPosts() {
     }
   }
   const debouncedFetchById = useDebounceFn((val: string) => {
-    const trimmed = val.trim()
-    if (!trimmed) {
+    const n = Number(val.trim())
+    if (!val.trim()) {
       explicitIdResult.value = null
       idError.value = null
-      return
-    }
-    const num = Number(trimmed)
-    if (!Number.isInteger(num) || num <= 0) {
+    } else if (!Number.isInteger(n) || n <= 0) {
       explicitIdResult.value = null
       idError.value = 'Введите корректный числовой ID'
-      return
+    } else {
+      fetchPostById(n)
     }
-    fetchPostById(num)
   }, 300)
-
-  watch(filterById, (val) => {
-    explicitIdResult.value = null
-    idError.value = null
-    debouncedFetchById(val)
-  })
-
-  const debouncedTitleSearch = useDebounceFn(
-    (textQuery: string) => doDataSearch(apiPosts.searchPosts, textQuery, searchResults),
-    300,
-  )
-  watch(titleQuery, (textQuery) => {
-    if (textQuery.trim()) {
-      debouncedTitleSearch(textQuery)
-      bodyQuery.value = ''
-    } else {
-      debouncedTitleSearch.cancel()
-      if (!bodyQuery.value.trim()) {
-        searchResults.value = null
-      }
-    }
-  })
-
-  const debouncedBodySearch = useDebounceFn(
-    (textQuery: string) => doDataSearch(apiPosts.searchPosts, textQuery, searchResults),
-    300,
-  )
-  watch(bodyQuery, (textQuery) => {
-    if (textQuery.trim()) {
-      debouncedBodySearch(textQuery)
-      titleQuery.value = ''
-    } else {
-      debouncedBodySearch.cancel()
-      if (!titleQuery.value.trim()) {
-        searchResults.value = null
-      }
-    }
-  })
+  watch(filterById, debouncedFetchById)
 
   return {
-    // поля
     filterById,
     titleQuery,
     bodyQuery,
-    // результаты
     searchResults,
     explicitIdResult,
     idError,
