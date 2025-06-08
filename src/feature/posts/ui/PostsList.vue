@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { usePosts, useSearchPosts } from '@/feature/posts/model/hooks'
 import MultiIcons from '@/shared/ui/icons/MultiIcons.vue'
 import type { Article } from '@/feature/posts/model/types'
@@ -74,6 +74,10 @@ const visiblePages = computed(() => {
     }
   }
   return pages
+})
+
+watch([searchResults, explicitIdResult], () => {
+  currentPage.value = 1
 })
 </script>
 
@@ -157,9 +161,9 @@ const visiblePages = computed(() => {
         {{ page }}
       </button>
 
-      <button :disabled="currentPage === totalPages" @click="currentPage++">Next</button>
+      <button :disabled="currentPage === displayedTotalPages" @click="currentPage++">Next</button>
 
-      <button :disabled="currentPage === totalPages" @click="currentPage = totalPages">>></button>
+      <button :disabled="currentPage === displayedTotalPages" @click="currentPage = displayedTotalPages">>></button>
     </section>
   </section>
 </template>
