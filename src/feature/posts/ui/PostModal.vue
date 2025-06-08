@@ -140,11 +140,13 @@ const handleEscape = (event: KeyboardEvent) => {
 const close = () => emit('close')
 
 onMounted(() => {
-  window.addEventListener('keydown', handleEscape)
+  window.addEventListener('keydown', handleEscape);
+  document.body.style.overflow = 'hidden'
 })
 
 onUnmounted(() => {
-  window.removeEventListener('keydown', handleEscape)
+  window.removeEventListener('keydown', handleEscape);
+  document.body.style.overflow = 'visible'
 })
 </script>
 
