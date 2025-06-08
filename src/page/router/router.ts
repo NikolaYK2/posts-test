@@ -5,7 +5,9 @@ const routes = [
   {
     path: '/',
     name: 'Home',
-    component: PostsList,
+    component: {
+      template: PostsList
+    },
   },
   {
     path: '/about',
