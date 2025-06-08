@@ -87,6 +87,13 @@ watch([editedTitle, editedBody], ([nt, nb]) => {
 })
 
 const saveEdit = async () => {
+  if (
+    editedTitle.value === postDetails.value.title &&
+    editedBody.value === postDetails.value.body
+  ) {
+    isEditing.value = false
+    return
+  }
   isLoading.value = true
   error.value = null
   try {
