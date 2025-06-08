@@ -233,5 +233,8 @@ button {
     background: var(--vt-c-green);
     transition: background 0.3s ease;
   }
+  &:disabled{
+    opacity: 0.3;
+  }
 }
 </style>
