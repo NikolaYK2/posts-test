@@ -27,7 +27,7 @@ const filteredPosts = computed<Article[]>(() => {
   if (explicitIdResult.value) return [explicitIdResult.value]
 
   const base = searchResults.value ?? posts.value
-  return base
+  const filtered = base
     .filter((p) => {
       const v = filterByLikes.value.trim()
       if (!v) return true
@@ -40,6 +40,13 @@ const filteredPosts = computed<Article[]>(() => {
       const n = Number(v)
       return !isNaN(n) && p.reactions.dislikes === n
     })
+
+  if (searchResults.value) {
+    const start = (currentPage.value - 1) * limit.value
+    return filtered.slice(start, start + limit.value)
+  }
+
+  return filtered
 })
 
 // Открыть модальное окно
