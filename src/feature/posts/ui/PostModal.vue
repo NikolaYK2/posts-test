@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, computed, defineProps, defineEmits, onUnmounted } from 'vue'
 import { apiPosts } from '@/feature/posts/model/api'
-import type { Article } from '@/feature/posts/model/types'
+import type { Article, Comment } from '@/feature/posts/model/types'
 import { apiUsers } from '@/feature/users/model/api'
 
 const props = defineProps<{ postId: number; allPosts: Article[] }>()
@@ -11,13 +11,7 @@ const currentId = ref(props.postId)
 const postDetails = ref({ title: '', body: '', tags: [''] })
 const authorName = ref('')
 const authorCompany = ref('')
-const comments = ref([
-  {
-    id: 0,
-    body: '',
-    user: { username: '' },
-  },
-])
+const comments = ref<Comment[]>([])
 const isEditing = ref(false)
 const editedTitle = ref('')
 const editedBody = ref('')
@@ -201,7 +195,6 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-
 .overlay {
   position: fixed;
   top: 0;
