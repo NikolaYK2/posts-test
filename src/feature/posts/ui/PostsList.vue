@@ -5,7 +5,7 @@ import MultiIcons from '@/shared/ui/icons/MultiIcons.vue'
 import type { Article } from '@/feature/posts/model/types'
 import PostModal from '@/feature/posts/ui/PostModal.vue'
 
-const { posts, totalPages, currentPage, isLoading, error } = usePosts(10)
+const { posts, totalPages, currentPage, limit, isLoading, error } = usePosts(10)
 
 const filterByLikes = ref('')
 const filterByDislikes = ref('')
@@ -51,18 +51,24 @@ const openPostModal = (postId: number) => {
 const closePostModal = () => {
   selectedPostId.value = null
 }
+
+const displayedTotalPages = computed(() =>
+  searchResults.value
+    ? Math.ceil(searchResults.value.length / limit.value) || 1
+    : totalPages.value,
+)
 const visiblePages = computed(() => {
   const pages: (number | string)[] = []
 
-  if (totalPages.value <= 3) {
-    for (let i = 1; i <= totalPages.value; i++) {
+  if (displayedTotalPages.value <= 3) {
+    for (let i = 1; i <= displayedTotalPages.value; i++) {
       pages.push(i)
     }
   } else {
     if (currentPage.value <= 2) {
       pages.push(1, 2, 3, '...')
-    } else if (currentPage.value >= totalPages.value - 1) {
-      pages.push('...', totalPages.value - 2, totalPages.value - 1, totalPages.value)
+    } else if (currentPage.value >= displayedTotalPages.value - 1) {
+      pages.push('...', displayedTotalPages.value - 2, displayedTotalPages.value - 1, displayedTotalPages.value)
     } else {
       pages.push('...', currentPage.value - 1, currentPage.value, currentPage.value + 1, '...')
     }
@@ -131,7 +137,7 @@ const visiblePages = computed(() => {
     />
 
     <section
-      v-if="totalPages > 1 && !isLoading"
+      v-if="displayedTotalPages > 1 && !isLoading"
       style="margin-top: 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap"
     >
       <button :disabled="currentPage === 1" @click="currentPage = 1">{{ '<<' }}</button>
